@@ -10,7 +10,7 @@ const PadraoLugar = sequelize.define(
             autoIncrement: true,
         },
         lugares: {
-            type: DataTypes.JSON,
+            type: DataTypes.JSONB,
             allowNull: false,
         }
     },

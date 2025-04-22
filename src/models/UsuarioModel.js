@@ -21,7 +21,6 @@ const Usuario = sequelize.define(
         },
         email: {
             type: DataTypes.STRING(100),
-            allowNull: false,
             unique: true,
         },
         estudante: {
@@ -44,7 +43,6 @@ Usuario.belongsTo(Cargo, {
     onDelete: 'NO ACTION',
     foreignKey: {
         name: 'idCargo',
-        allowNull: false,
         field: 'id_cargo',
     }
 });

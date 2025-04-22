@@ -1,4 +1,5 @@
 import Sessao from "../models/SessaoModel.js";
+import Sala from "../models/SalaModel.js";
 
 const get = async (req, res) => {
     try {
@@ -40,13 +41,22 @@ const get = async (req, res) => {
 const create = async (corpo) => {
     try {
         const {
-            lugares,
             dataInicio,
             dataFim,
             preco,
             idFilme,
             idSala
-        } = corpo
+        } = corpo;
+
+        const sala = await Sala.findByPk(idSala);
+        if (!sala) {
+            throw new Error('Sala não encontrada');
+        }
+
+        const lugares = sala.padraoLugar.map((lugar) => ({
+            ...lugar,
+            ocupado: false
+        }));
 
         const response = await Sessao.create({
             lugares,
@@ -64,18 +74,28 @@ const create = async (corpo) => {
     }
 }
 
-const update = async(corpo, id) => {
+const update = async (corpo, id) => {
     try {
         const response = await Sessao.findOne({
-            where: {
-                id
+            where: { id }
+        });
+
+        if (!response) {
+            throw new Error('Sessão não encontrada');
+        }
+        
+        if (corpo.idSala === response.idSala) {
+            throw new Error('idSala é igual');
+        } else {
+            response.idSala = corpo.idSala;
+        }
+
+        Object.keys(corpo).forEach((item) => {
+            if (item !== 'idSala') {
+                response[item] = corpo[item];
             }
         });
 
-        if(!response) {
-            throw new Error('não achou');
-        }
-        Object.keys(corpo).forEach((item) => response[item] = corpo[item]);
         await response.save();
         return response;
 

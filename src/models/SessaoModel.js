@@ -12,8 +12,8 @@ const Sessao = sequelize.define(
             autoIncrement: true,
         },
         lugares: {
-            type: DataTypes.JSON,
-            allowNull: false,
+            type: DataTypes.JSONB,
+            allowNull: true,
         },
         dataInicio: {
             type: DataTypes.DATE,

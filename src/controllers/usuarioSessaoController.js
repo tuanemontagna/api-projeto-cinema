@@ -1,4 +1,5 @@
 import UsuarioSessao from "../models/UsuarioSessaoModel.js";
+//import Usuario from "../models/UsuarioModel.js";
 
 const get = async (req, res) => {
     try {
@@ -134,8 +135,22 @@ const destroy = async (req, res) => {
     }
 }
 
+// const comprarIngresso = async(req,res) => {
+//     try {
+//         const id = req.params.id ? req.params.id.toString().replace(/\D/g, '') : null;
+
+
+
+//     } catch (error) {
+//         return res.status(500).send({
+//             message: error.message
+//         });
+//     }
+// }
+
 export default {
     get,
     persist,
     destroy,
+    //comprarIngresso,
 }
