@@ -1,5 +1,5 @@
 import UsuarioSessao from "../models/UsuarioSessaoModel.js";
-//import Usuario from "../models/UsuarioModel.js";
+import Sessao from "../models/SessaoModel.js";
 
 const get = async (req, res) => {
     try {
@@ -135,22 +135,162 @@ const destroy = async (req, res) => {
     }
 }
 
-// const comprarIngresso = async(req,res) => {
-//     try {
-//         const id = req.params.id ? req.params.id.toString().replace(/\D/g, '') : null;
+const getLugaresDisponiveis = async (req, res) => {
+    try {
+        const { idSessao } = req.params;
+
+        const sessao = await Sessao.findOne({
+            where: { id: idSessao },
+            attributes: ['lugares'] 
+        });
+
+        if (!sessao) {
+            return res.status(404).send('Sessão não encontrada');
+        }
+
+        const lugares = sessao.lugares || [];
+
+        const lugaresDisponiveis = lugares.filter(lugar => lugar.ocupado === false);
+
+        return res.status(200).send({
+            lugaresDisponiveis,
+            total: lugaresDisponiveis.length
+        });
+
+    } catch (error) {
+        return res.status(500).send({
+            message: error.message
+        });
+    }
+}
 
 
+const postComprarIngresso = async (req, res) => {
+    try {
+        const { idUsuario, idSessao, lugar } = req.body;
 
-//     } catch (error) {
-//         return res.status(500).send({
-//             message: error.message
-//         });
-//     }
-// }
+        if (!idUsuario || !idSessao || !lugar) {
+            return res.status(400).send({ message: 'informe please' });
+        }
+
+        const sessao = await Sessao.findOne({
+            where: { id: idSessao },
+            attributes: ['id', 'lugares', 'preco', 'dataInicio']
+        });
+        
+
+        if (!sessao) {
+            return res.status(404).send({ error: 'sessao nao existe' });
+        }
+
+        const lugares = sessao.lugares || [];
+
+        const lugarSelecionado = lugares.find(l => l.lugar === lugar);
+
+        if (!lugarSelecionado) {
+            return res.status(400).send({ error: 'Lugar não encontrado na sessão.' });
+        }
+
+        if (lugarSelecionado.ocupado) {
+            return res.status(400).send({ error: 'lugar ocupado' });
+        }
+
+        const lugaresAtualizados = lugares.map(l => {
+            if (l.lugar === lugar) {
+                return {
+                    ...l,
+                    ocupado: true,
+                    idUsuario: idUsuario
+                };
+            }
+            return l;
+        });
+
+        sessao.lugares = lugaresAtualizados;
+        await sessao.save();
+
+        const ingresso = await UsuarioSessao.create({
+            idUsuario,
+            idSessao,
+            lugar,
+            valor: sessao.preco,
+            dataCompra: new Date()
+        });
+
+        return res.status(201).send({
+            ingresso: {
+                id: ingresso.id,
+                valor: ingresso.valor,
+                lugar: ingresso.lugar
+            },
+            sessao: {
+                data: sessao.dataInicio
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).send({ message: error.message });
+    }
+};
+
+const cancelarCompra = async (req, res) => {
+    try {
+        const { idUsuario, idSessao, lugar } = req.body;
+
+        if (!idUsuario || !idSessao || !lugar) {
+            return res.status(400).send({ message: 'informe idUsuario, idSessao e lugar' });
+        }
+
+        const sessao = await Sessao.findOne({
+            where: { id: idSessao },
+            attributes: ['id', 'lugares']
+        });
+
+        if (!sessao) {
+            return res.status(404).send({ message: 'Sessão não encontrada' });
+        }
+
+        const lugares = sessao.lugares || [];
+
+        const lugaresAtualizados = lugares.map(l => {
+            if (l.lugar === lugar && l.idUsuario === idUsuario) {
+                return {
+                    ...l,
+                    ocupado: false,
+                    idUsuario: null
+                };
+            }
+            return l;
+        });
+
+        sessao.lugares = lugaresAtualizados;
+        await sessao.save();
+
+        const compra = await UsuarioSessao.findOne({
+            where: {
+                idUsuario,
+                idSessao
+            }
+        });
+
+        if (!compra) {
+            return res.status(404).send({ message: 'Compra não encontrada.' });
+        }
+
+        await compra.destroy();
+
+        return res.status(200).send({ message: 'Compra cancelada com sucesso.' });
+
+    } catch (error) {
+        return res.status(500).send({ message: error.message });
+    }
+};
 
 export default {
     get,
     persist,
     destroy,
-    //comprarIngresso,
+    getLugaresDisponiveis,
+    postComprarIngresso,
+    cancelarCompra,
 }

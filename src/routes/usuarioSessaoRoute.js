@@ -6,4 +6,7 @@ export default (app) => {
     app.post('/usuariosessao', usuarioSessaoController.persist);
     app.patch('/usuariosessao/:id', usuarioSessaoController.persist);
     app.delete('/usuariosessao/:id', usuarioSessaoController.destroy);
+    app.get('/lugaresDisponiveis/:idSessao', usuarioSessaoController.getLugaresDisponiveis);
+    app.post('/comprarIngresso', usuarioSessaoController.postComprarIngresso);
+    //app.delete('/cancelarCompra', usuarioSessaoController.cancelarCompra);
 }

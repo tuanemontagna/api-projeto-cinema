@@ -14,7 +14,7 @@ const UsuarioSessao = sequelize.define(
         valor: {
             type: DataTypes.DECIMAL,
             allowNull: false,
-        }
+        }    
     },
     {
         tableName: 'usuario_sessao',
