@@ -6,4 +6,5 @@ export default (app) => {
     app.post('/sessao', sessaoController.persist);
     app.patch('/sessao/:id', sessaoController.persist);
     app.delete('/sessao/:id', sessaoController.destroy);
+    app.get('/sessao/relatorio/:id', sessaoController.relatorioSessao);
 }

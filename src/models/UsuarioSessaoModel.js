@@ -14,7 +14,10 @@ const UsuarioSessao = sequelize.define(
         valor: {
             type: DataTypes.DECIMAL,
             allowNull: false,
-        }    
+        },
+        status: {
+            type: DataTypes.STRING,
+        }
     },
     {
         tableName: 'usuario_sessao',

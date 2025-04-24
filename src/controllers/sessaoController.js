@@ -160,8 +160,47 @@ const destroy = async (req, res) => {
     }
 }
 
+const relatorioSessao = async (req, res) => {
+    try {
+        const id = req.params.id ? req.params.id.toString().replace(/\D/g, '') : null;
+
+        if(!id) {
+            return res.status(400).send('informe please');
+        }
+
+        const response = await Sessao.findOne({
+            where: { id : id },
+            attributes: ['lugares', 'preco'],
+
+        });
+        console.log(response);
+
+        if(!response) {
+            return res.status(404).send('nao achou');
+        }
+
+        const lugares = response.toJSON().lugares;
+        const vendidos = lugares.filter(lugar => lugar.ocupado === true).length;
+        const valorArrecadado = vendidos * Number(response.preco);
+
+        return res.status(200).send({
+            message: 'relatorio gerado',
+            data: {
+                vendidos, 
+                valorArrecadado,
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).send({
+            message: error.message
+        });
+    }
+}
+
 export default {
     get,
     persist,
     destroy,
+    relatorioSessao,
 }
