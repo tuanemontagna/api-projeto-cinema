@@ -24,6 +24,10 @@ const Filme = sequelize.define(
         duracao: {
             type: DataTypes.INTEGER,
             allowNull: false,
+        },
+        caminhoImagem: {
+            field: 'caminho_imagem',
+            type: DataTypes.STRING,
         }
     },
     {

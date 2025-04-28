@@ -18,5 +18,4 @@ function Routes(app) {
     usuarioSessaoRoute(app);
 }
 
-
 export default Routes;

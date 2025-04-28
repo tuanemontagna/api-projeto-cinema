@@ -32,6 +32,14 @@ const Usuario = sequelize.define(
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: false,
+        },
+        codigoTemporario: {
+            field: 'codigo_temporario',
+            type: DataTypes.STRING,
+        },
+        expiracaoCodigoTemporario: {
+            field: 'expiracao_codigo_temporario',
+            type: DataTypes.DATE,
         }
     },
     {

@@ -2,6 +2,7 @@ import Usuario from "../models/UsuarioModel.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Cargo from "../models/CargoModel.js";
+import sendMail from '../utils/sendMail.js';
 
 const get = async (req, res) => {
     try {
@@ -230,6 +231,95 @@ const destroy = async (req, res) => {
     }
 }
 
+const recuperarSenha = async (req, res) => {
+    try {
+        const {email} = req.body;
+
+        const usuario = await Usuario.findOne({
+            where: {email},
+        });
+
+        if (!usuario) {
+            return res.status(404).send({ 
+                message: 'usuário nao encontrado' 
+            });
+        }
+
+        const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiraCodigo = new Date();
+        expiraCodigo.setMinutes(expiraCodigo.getMinutes() + 30);
+
+        usuario.codigoTemporario = codigo;
+        usuario.expiracaoCodigoTemporario = expiraCodigo;
+        await usuario.save();
+
+        const corpoEmail = `<p>Olá, ${usuario.nome},</p>
+            <p>Seu código de recuperação é: ${codigo}</p>
+            <p>Este código expira em 30 minutos.</p>`;
+
+        await sendMail(usuario.email, usuario.nome, corpoEmail, 'Recuperação de Senha');
+
+        return res.status(200).send({
+            message: 'códfigo enviado com sucesso',
+        });
+
+    } catch (error) {
+        return res.status(500).send({
+            message: error.message
+        });
+    }
+}
+
+const redefinirSenha = async (req, res) => {
+    try {
+        const {
+            email,
+            codigo,
+            novaSenha,
+        } = req.body;
+
+        const usuario = await Usuario.findOne({
+            where: {email},
+        });
+
+        if (!usuario) {
+            return res.status(404).send({ 
+                message: 'usuário nao encontrado' 
+            });
+        }
+
+        if(usuario.codigoTemporario !== codigo) {
+            return res.status(400).send({
+                message: 'codigo inválido',
+            });
+        }
+
+        if(new Date() > usuario.expiracaoCodigoTemporario) {
+            return res.status(400).send({
+                message: 'codigo expirado',
+            });
+        }
+
+        const senhaHash = await bcrypt.hash(novaSenha, 10);
+
+        usuario.passwordHash = senhaHash;
+        usuario.codigoTemporario = null;
+        usuario.expiracaoCodigoTemporario = null;
+        await usuario.save();
+
+        return res.status(200).send({
+            message: 'senha redefinida com sucesso',
+        });
+        
+
+
+    } catch (error) {
+        return res.status(500).send({
+            message: error.message
+        });
+    }
+}
+
 
 export default {
     get,
@@ -237,4 +327,6 @@ export default {
     destroy,
     login,
     getDataByToken,
+    recuperarSenha,
+    redefinirSenha,
 }
