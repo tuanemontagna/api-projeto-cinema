@@ -14,14 +14,16 @@ import { fileURLToPath } from 'node:url';
 export default async (file, params, res) => {
     try {
         const __dirname = dirname(fileURLToPath(import.meta.url));
-        let extensao = path.extname(file.name).toLowerCase();
+
+        let extensao = path.extname(file.name).toLowerCase();  
+        console.log("extensão do arquivo:", extensao);
 
         const validarExtensao = ['.jpg', '.jpeg', '.png'];
         if (!validarExtensao.includes(extensao)) {
             console.log("arquivo não permitido");
-            return res.send({
+            return res.status(400).send({
                 message: "apenas arquivos de imagem sao aceitos"
-            })
+            });
         }
 
         let filePath = `public/${params.tipo}/${params.tabela}/${params.id}${extensao}`;
@@ -30,13 +32,14 @@ export default async (file, params, res) => {
 
         return {
             type: 'sucess',
-            message: uploadPath
+            message: filePath,
         }
 
     } catch (error) {
-        return {
-            type: 'erro',
+        console.error(error);
+        return res.status(500).send({
             message: error.message
-        }
+        });
     }
 }
+
