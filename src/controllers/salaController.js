@@ -56,25 +56,30 @@ const create = async (corpo) => {
     }
 }
 
-const update = async(corpo, id) => {
+const update = async (corpo, id) => {
     try {
-        const response = await Sala.findOne({
-            where: {
-                id
-            }
-        });
-
-        if(!response) {
-            throw new Error('não achou');
+      const response = await Sala.findOne({ where: { id } });
+  
+      if (!response) {
+        throw new Error("Sala não encontrada");
+      }
+  
+      const camposPermitidos = ["observacao", "idPadraoLugar"];
+      camposPermitidos.forEach((campo) => {
+        if (corpo[campo] !== undefined) {
+          response[campo] = corpo[campo];
         }
-        Object.keys(corpo).forEach((item) => response[item] = corpo[item]);
-        await response.save();
-        return response;
-
+      });
+  
+      await response.save();
+      return response;
+  
     } catch (error) {
-        throw new Error(error.message);
+      console.error("Erro ao atualizar sala:", error);
+      throw error;
     }
-}
+  };
+  
 
 const persist = async(req, res) => {
     try {

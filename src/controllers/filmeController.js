@@ -40,7 +40,7 @@ const get = async (req, res) => {
 const create = async (corpo, req, res) => {
     try {
         const { nome, descricao, autor, duracao } = corpo;
-
+        
         const filmeCriado = await Filme.create({
             nome,
             descricao,
@@ -48,26 +48,26 @@ const create = async (corpo, req, res) => {
             duracao,
         });
 
-        const cartaz = req.files.cartaz;
-        const upload = await uploadFile(
-            cartaz,
-            { id: filmeCriado.id, tipo: 'imagem', tabela: 'filme' },
-            res
-        );
-
-        if (upload.type === 'erro') {
-            await filmeCriado.destroy(); 
-            return res.send({ 
-                message: upload.message
-            });
+        const cartaz = req.files?.cartaz;
+        console.log(req.files);
+        
+        if(cartaz) {
+            const upload = await uploadFile(
+                cartaz,
+                { id: filmeCriado.id, tipo: 'imagem', tabela: 'filme' },
+                res
+            );
+            if (upload.type === 'erro') {
+                await filmeCriado.destroy(); 
+                return res.send({ 
+                    message: upload.message
+                });
+            }
+            const caminhoImagem = upload.message.replace('public/', '');
+            filmeCriado.caminhoImagem = caminhoImagem;
         }
-
-        const caminhoImagem = upload.message.replace('public/', '');
-        filmeCriado.caminhoImagem = caminhoImagem;
         await filmeCriado.save();
-
         return filmeCriado;
-
     } catch (error) {
         throw new Error(error.message);
     }
